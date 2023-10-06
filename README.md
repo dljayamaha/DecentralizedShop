@@ -1,68 +1,110 @@
-Decentralized Shop Smart Contract V1.1
-Overview
-The Shop smart contract is a decentralized application (DApp) that allows users to buy and sell products. It includes features such as product creation, order placement, order tracking, and a shopping cart. The contract is designed to be easy to use and transparent, providing a secure platform for e-commerce on the Ethereum blockchain.
+DecentralizedShop V1.1 Smart Contract User Guide
+The Shop smart contract is a decentralized application (DApp) that facilitates buying and selling products on the Ethereum blockchain. This user guide will walk you through how to interact with the contract's functions.
 
-Features
-Product Management
-Create Product: Sellers can create new products with details such as SKU, name, description, image URL, price, and stock. A fee must be paid to create a product.
-
-Update Product: Sellers can update the details of their existing products, including name, description, image URL, price, and stock.
-
-Delete Product: Sellers can mark a product as deleted, effectively removing it from the marketplace.
-
-View Products: Anyone can view the list of available products.
-
-Order Management
-Create Order: Buyers can place orders for products, specifying the quantity and destination. Orders require payment, and the total cost is calculated based on the selected products and quantities.
-
-Deliver Order: Sellers can mark orders as "Delivered" once the products are shipped. This action triggers payment to the seller and updates the order status.
-
-Cancel Order: Buyers can cancel their orders, resulting in a refund and returning the purchased quantity to the product's stock.
-
-View Orders: Users can view their order history and check order status.
-
+Table of Contents
+Prerequisites
+Deploying the Contract
+Seller Functions
+Creating Products
+Updating Products
+Deleting Products
+Buyer Functions
+Placing Orders
+Managing Orders
 Shopping Cart
-Add to Cart: Users can add products to their shopping cart by specifying the product ID and quantity.
-
-View Cart: Users can view the contents of their shopping cart, including product IDs and quantities.
-
-Remove from Cart: Users can remove products from their shopping cart by specifying the index of the item in the cart.
-
-Update Cart: Users can update the quantity of products in their shopping cart.
-
 Order Tracking
-Ship Order: Sellers can update an order's status to "Shipped" and provide a tracking number. This functionality enables buyers to track their orders.
+Statistics
+Prerequisites
+Before using the Shop smart contract, ensure you have:
+
+A compatible Ethereum wallet (e.g., MetaMask).
+Sufficient Ether (ETH) in your wallet to cover transaction fees.
+Deploying the Contract
+Deploy the Shop smart contract using a compatible Ethereum wallet by specifying the creation fee.
+Seller Functions
+Creating Products
+Sellers can add their products to the marketplace using the createProduct function:
+
+solidity
+Copy code
+function createProduct(
+    string memory sku,
+    string memory name,
+    string memory description,
+    string memory imageURL,
+    uint price,
+    uint stock
+) public payable returns (bool)
+sku: A unique identifier for the product.
+name: The name of the product.
+description: A description of the product.
+imageURL: URL of the product image.
+price: The price of the product.
+stock: The available stock quantity.
+Pay the creation fee in Ether.
+Updating Products
+Sellers can update their product details using the updateProduct function:
+
+solidity
+Copy code
+function updateProduct(
+    uint id,
+    string memory name,
+    string memory description,
+    string memory imageURL,
+    uint price,
+    uint stock
+) public returns (bool)
+id: The ID of the product to be updated.
+name: The new name of the product.
+description: The new description of the product.
+imageURL: The new URL of the product image.
+price: The new price of the product.
+stock: The new available stock quantity.
+Deleting Products
+Sellers can mark their products as deleted using the deleteProduct function:
+
+solidity
+Copy code
+function deleteProduct(uint id) public returns (bool)
+id: The ID of the product to be marked as deleted.
+Buyer Functions
+Placing Orders
+Buyers can place orders for products they wish to purchase using the createOrder function:
+
+solidity
+Copy code
+function createOrder(
+    uint[] memory ids,
+    uint[] memory qtys,
+    string memory destination,
+    string memory phone
+) public payable returns (bool)
+ids: An array of product IDs to order.
+qtys: An array of quantities corresponding to the products.
+destination: The shipping destination.
+phone: The contact phone number.
+Pay the total order cost in Ether.
+Managing Orders
+Buyers and sellers can manage their orders using the following functions:
+
+Deliver Order (Seller): Sellers can mark orders as "Delivered" using the deliverOrder function. This triggers payment to the seller.
+Cancel Order (Buyer): Buyers can cancel their orders using the cancelOrder function. This initiates a refund.
+Shopping Cart
+Users can manage their shopping cart using the following functions:
+
+Add to Cart: Users can add products to their shopping cart using the addToCart function.
+View Cart: Users can view the contents of their shopping cart using the viewCart function.
+Remove from Cart: Users can remove products from their shopping cart using the removeFromCart function.
+Update Cart: Users can update the quantity of products in their shopping cart using the updateCartItem function.
+Order Tracking
+Ship Order (Seller): Sellers can update an order's status to "Shipped" and provide a tracking number using the shipOrder function.
 Statistics
 The contract keeps track of various statistics, including the number of products, orders, sellers, sales, paid amounts, and the contract's balance.
-Usage
-Deploying the Contract
-To deploy the Shop contract, specify the creation fee during deployment. The deploying address becomes the owner of the contract.
 
-Creating Products
-Sellers can create products by calling the createProduct function, providing product details and paying the creation fee.
+This user guide provides detailed instructions on how to use the Shop smart contract's functions for both sellers and buyers. Make sure to have a compatible Ethereum wallet and sufficient ETH to interact with the contract.
 
-Managing Products
-Sellers can update or delete their products using the respective functions. Deleted products are marked as such but remain in the contract's storage.
 
-Placing Orders
-Buyers can place orders by calling the createOrder function, specifying the product IDs, quantities, destination, and phone number. Orders require payment.
 
-Managing Orders
-Sellers can mark orders as "Delivered" to trigger payment and update order status. Buyers can cancel orders to receive refunds.
-
-Shopping Cart
-Users can manage their shopping cart by adding, viewing, updating, or removing items.
-
-Order Tracking
-Sellers can update order status to "Shipped" and provide tracking numbers for buyer reference.
-
-Statistics
-The contract tracks various statistics, providing insights into the marketplace's performance.
-
-Development
-The Shop smart contract can be further enhanced with additional features and improvements. Developers can contribute to its development by implementing new functionalities or optimizing existing ones.
-
-Disclaimer
-This smart contract is provided as-is, without warranties or guarantees. Use it at your own risk and make sure to thoroughly test it before deploying on the Ethereum blockchain.
 
 Gem-Dealer1.888
