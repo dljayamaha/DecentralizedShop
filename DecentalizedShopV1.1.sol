@@ -41,8 +41,8 @@ contract Shop {
     }
 
     struct CartStruct {
-        uint id;
-        uint qty;
+        uint[] productIds;
+        uint[] quantities;
     }
 
     struct BuyerStruct {
@@ -64,13 +64,14 @@ contract Shop {
     address public owner;
     ShopStats public stats;
     uint public fee;
-    ProductStruct[] products;
-    mapping(address => ProductStruct[]) productsOf;
-    mapping(uint => OrderStruct[]) ordersOf;
+    ProductStruct[] public products;
+    mapping(address => ProductStruct[]) public productsOf;
+    mapping(uint => OrderStruct[]) public ordersOf;
     mapping(address => ShopStats) public statsOf;
-    mapping(uint => BuyerStruct[]) buyersOf;
+    mapping(uint => BuyerStruct[]) public buyersOf;
     mapping(uint => bool) public productExist;
     mapping(uint => mapping(uint => bool)) public orderExist;
+    mapping(address => CartStruct) public shoppingCarts; // Shopping carts associated with wallet addresses
 
     event Sale(
         uint256 id,
@@ -128,7 +129,7 @@ contract Shop {
         uint price,
         uint stock
     ) public returns (bool) {
-        require(products[id].seller == msg.sender, "Unauthorize Personel");
+        require(products[id].seller == msg.sender, "Unauthorized Personnel");
         require(bytes(name).length > 0, "name cannot be empty");
         require(bytes(description).length > 0, "description cannot be empty");
         require(price > 0, "price cannot be zero");
@@ -150,7 +151,7 @@ contract Shop {
     }
 
     function updateOrderDetails(ProductStruct memory product) internal {
-        for(uint i=0; i < ordersOf[product.id].length; i++) {
+        for (uint i = 0; i < ordersOf[product.id].length; i++) {
             OrderStruct memory order = ordersOf[product.id][i];
             order.name = product.name;
             order.imageURL = product.imageURL;
@@ -159,7 +160,7 @@ contract Shop {
     }
 
     function deleteProduct(uint id) public returns (bool) {
-        require(products[id].seller == msg.sender, "Unauthorize Personel");
+        require(products[id].seller == msg.sender, "Unauthorized Personnel");
         products[id].deleted = true;
         return true;
     }
@@ -168,7 +169,7 @@ contract Shop {
         require(productExist[id], "Product not found");
         return products[id];
     }
-    
+
     function getProducts() public view returns (ProductStruct[] memory) {
         return products;
     }
@@ -182,12 +183,11 @@ contract Shop {
         require(msg.value >= totalCost(ids, qtys), "Insufficient amount");
         require(bytes(destination).length > 0, "destination cannot be empty");
         require(bytes(phone).length > 0, "phone cannot be empty");
-    
+
         stats.balance += totalCost(ids, qtys);
 
-        for(uint i = 0; i < ids.length; i++) {
-            
-            if(productExist[ids[i]] && products[ids[i]].stock >= qtys[i]) {
+        for (uint i = 0; i < ids.length; i++) {
+            if (productExist[ids[i]] && products[ids[i]].stock >= qtys[i]) {
                 products[ids[i]].stock -= qtys[i];
                 statsOf[msg.sender].orders++;
                 stats.orders++;
@@ -206,18 +206,12 @@ contract Shop {
                 order.timestamp = block.timestamp;
                 order.destination = destination;
                 order.phone = phone;
-                order.status = OrderEnum.PLACED; // Set initial order status
+                order.status = OrderEnum.PLACED; // Initial order status
 
                 ordersOf[order.pid].push(order);
                 orderExist[order.pid][order.id] = true;
 
-                emit Sale(
-                    order.id,
-                    order.buyer,
-                    order.seller,
-                    order.total,
-                    block.timestamp
-                );
+                emit Sale(order.id, order.buyer, order.seller, order.total, block.timestamp);
             }
         }
 
@@ -226,7 +220,7 @@ contract Shop {
 
     function totalCost(uint[] memory ids, uint[] memory qtys) internal view returns (uint) {
         uint total;
-        for(uint i = 0; i < ids.length; i++) {
+        for (uint i = 0; i < ids.length; i++) {
             total += products[i].price * qtys[i];
         }
         return total;
@@ -237,7 +231,7 @@ contract Shop {
         OrderStruct memory order = ordersOf[pid][id];
         require(order.seller == msg.sender, "Unauthorized Entity");
         require(order.status != OrderEnum.DELIVERED, "Order already delivered");
-        
+
         order.status = OrderEnum.DELIVERED;
         ordersOf[pid][id] = order;
 
@@ -249,12 +243,7 @@ contract Shop {
         payTo(order.seller, order.total);
 
         buyersOf[id].push(
-            BuyerStruct(
-                order.buyer,
-                order.total,
-                order.qty,
-                block.timestamp
-            )
+            BuyerStruct(order.buyer, order.total, order.qty, block.timestamp)
         );
         return true;
     }
@@ -276,8 +265,8 @@ contract Shop {
     function getOrders() public view returns (OrderStruct[] memory props) {
         props = new OrderStruct[](stats.orders);
 
-        for(uint i=0; i < stats.orders; i++) {
-            for(uint j=0; j < ordersOf[i].length; j++) {
+        for (uint i = 0; i < stats.orders; i++) {
+            for (uint j = 0; j < ordersOf[i].length; j++) {
                 props[i] = ordersOf[i][j];
             }
         }
@@ -298,11 +287,11 @@ contract Shop {
         OrderStruct storage order = ordersOf[pid][id];
         require(order.seller == msg.sender, "Unauthorized Entity");
         require(order.status == OrderEnum.PLACED, "Order cannot be shipped");
-        
+
         order.status = OrderEnum.SHIPPED;
         order.trackingNumber = trackingNumber; // Set the tracking number
 
-        // Emit an event or perform additional actions here if needed
+        // You can add additional logic here if needed
 
         return true;
     }
@@ -310,5 +299,46 @@ contract Shop {
     function payTo(address to, uint256 amount) internal {
         (bool success1, ) = payable(to).call{value: amount}("");
         require(success1);
+    }
+
+    // Shopping cart functionality
+
+    // Add a product to the shopping cart
+    function addToCart(uint productId, uint quantity) public {
+        require(productExist[productId], "Product not found");
+        require(quantity > 0, "Quantity must be greater than 0");
+
+        CartStruct storage cart = shoppingCarts[msg.sender];
+        cart.productIds.push(productId);
+        cart.quantities.push(quantity);
+    }
+
+    // View the contents of the shopping cart
+    function viewCart() public view returns (uint[] memory, uint[] memory) {
+        CartStruct storage cart = shoppingCarts[msg.sender];
+        return (cart.productIds, cart.quantities);
+    }
+
+    // Remove a product from the shopping cart
+    function removeFromCart(uint index) public {
+        CartStruct storage cart = shoppingCarts[msg.sender];
+        require(index < cart.productIds.length, "Invalid index");
+
+        // Remove the selected item from the cart
+        for (uint i = index; i < cart.productIds.length - 1; i++) {
+            cart.productIds[i] = cart.productIds[i + 1];
+            cart.quantities[i] = cart.quantities[i + 1];
+        }
+        cart.productIds.pop();
+        cart.quantities.pop();
+    }
+
+    // Update the quantity of a product in the shopping cart
+    function updateCartItem(uint index, uint newQuantity) public {
+        CartStruct storage cart = shoppingCarts[msg.sender];
+        require(index < cart.productIds.length, "Invalid index");
+        require(newQuantity > 0, "Quantity must be greater than 0");
+
+        cart.quantities[index] = newQuantity;
     }
 }
