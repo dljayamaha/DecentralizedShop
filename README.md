@@ -1,4 +1,4 @@
-Shop Smart Contract
+Decentralized Shop Smart Contract V1.1
 Overview
 The Shop smart contract is a decentralized application (DApp) that allows users to buy and sell products. It includes features such as product creation, order placement, order tracking, and a shopping cart. The contract is designed to be easy to use and transparent, providing a secure platform for e-commerce on the Ethereum blockchain.
 
