@@ -91,3 +91,5 @@ This smart contract is available under the MIT License. See the LICENSE file for
 
 Acknowledgments
 Special thanks to the Ethereum community and Solidity developers for their contributions to decentralized applications.
+
+gem-dealer1.888
