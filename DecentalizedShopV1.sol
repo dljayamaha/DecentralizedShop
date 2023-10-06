@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
 
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
 contract Shop {
     enum OrderEnum {
         PLACED,
         DELIVERED,
         CANCELED,
         REFUNDED,
-        SHIPPED // New order status for shipped orders
+        SHIPPED
     }
 
     struct ProductStruct {
@@ -37,12 +39,7 @@ contract Shop {
         string destination;
         string phone;
         OrderEnum status;
-        string trackingNumber; // New field to store the tracking number
-    }
-
-    struct CartStruct {
-        uint id;
-        uint qty;
+        string trackingNumber;
     }
 
     struct BuyerStruct {
@@ -64,13 +61,20 @@ contract Shop {
     address public owner;
     ShopStats public stats;
     uint public fee;
-    ProductStruct[] products;
-    mapping(address => ProductStruct[]) productsOf;
-    mapping(uint => OrderStruct[]) ordersOf;
+    ProductStruct[] public products;
+    mapping(address => ProductStruct[]) public productsOf;
+    mapping(uint => OrderStruct[]) public ordersOf;
     mapping(address => ShopStats) public statsOf;
-    mapping(uint => BuyerStruct[]) buyersOf;
+    mapping(uint => BuyerStruct[]) public buyersOf;
     mapping(uint => bool) public productExist;
     mapping(uint => mapping(uint => bool)) public orderExist;
+
+    mapping(address => bool) public claimedNFTDiscount;
+    struct NFTDiscount {
+        address nftContract;
+        uint discountAmount;
+    }
+    mapping(address => NFTDiscount[]) public nftDiscounts;
 
     event Sale(
         uint256 id,
@@ -128,7 +132,7 @@ contract Shop {
         uint price,
         uint stock
     ) public returns (bool) {
-        require(products[id].seller == msg.sender, "Unauthorize Personel");
+        require(products[id].seller == msg.sender, "Unauthorized Personnel");
         require(bytes(name).length > 0, "name cannot be empty");
         require(bytes(description).length > 0, "description cannot be empty");
         require(price > 0, "price cannot be zero");
@@ -159,7 +163,7 @@ contract Shop {
     }
 
     function deleteProduct(uint id) public returns (bool) {
-        require(products[id].seller == msg.sender, "Unauthorize Personel");
+        require(products[id].seller == msg.sender, "Unauthorized Personnel");
         products[id].deleted = true;
         return true;
     }
@@ -179,14 +183,20 @@ contract Shop {
         string memory destination,
         string memory phone
     ) public payable returns (bool) {
-        require(msg.value >= totalCost(ids, qtys), "Insufficient amount");
         require(bytes(destination).length > 0, "destination cannot be empty");
         require(bytes(phone).length > 0, "phone cannot be empty");
-    
-        stats.balance += totalCost(ids, qtys);
+
+        uint total = totalCost(ids, qtys);
+        uint nftDiscount = getNFTDiscount(msg.sender);
+
+        if (nftDiscount > 0) {
+            require(msg.value >= total - nftDiscount, "Insufficient amount with NFT discount");
+            total -= nftDiscount;
+        }
+
+        stats.balance += total;
 
         for(uint i = 0; i < ids.length; i++) {
-            
             if(productExist[ids[i]] && products[ids[i]].stock >= qtys[i]) {
                 products[ids[i]].stock -= qtys[i];
                 statsOf[msg.sender].orders++;
@@ -195,7 +205,7 @@ contract Shop {
                 OrderStruct memory order;
 
                 order.pid = products[ids[i]].id;
-                order.id = ordersOf[order.pid].length; // order Id resolved
+                order.id = ordersOf[order.pid].length;
                 order.sku = products[ids[i]].sku;
                 order.buyer = msg.sender;
                 order.seller = products[ids[i]].seller;
@@ -206,7 +216,6 @@ contract Shop {
                 order.timestamp = block.timestamp;
                 order.destination = destination;
                 order.phone = phone;
-                order.status = OrderEnum.PLACED; // Set initial order status
 
                 ordersOf[order.pid].push(order);
                 orderExist[order.pid][order.id] = true;
@@ -293,22 +302,34 @@ contract Shop {
         return buyersOf[pid];
     }
 
-    function shipOrder(uint pid, uint id, string memory trackingNumber) public returns (bool) {
-        require(orderExist[pid][id], "Order not found");
-        OrderStruct storage order = ordersOf[pid][id];
-        require(order.seller == msg.sender, "Unauthorized Entity");
-        require(order.status == OrderEnum.PLACED, "Order cannot be shipped");
-        
-        order.status = OrderEnum.SHIPPED;
-        order.trackingNumber = trackingNumber; // Set the tracking number
-
-        // Emit an event or perform additional actions here if needed
-
-        return true;
-    }
-
     function payTo(address to, uint256 amount) internal {
         (bool success1, ) = payable(to).call{value: amount}("");
         require(success1);
+    }
+
+    // Function for sellers to add NFT ownership discount
+    function addNFTDiscount(address nftContract, uint discountAmount) public {
+        require(productsOf[msg.sender].length > 0, "You must have products to set NFT discounts");
+        nftDiscounts[msg.sender].push(NFTDiscount(nftContract, discountAmount));
+    }
+
+    // Function for buyers to claim their NFT discount
+    function claimNFTDiscount() public {
+        require(!claimedNFTDiscount[msg.sender], "NFT discount already claimed");
+        claimedNFTDiscount[msg.sender] = true;
+    }
+
+    // Function to get the NFT ownership discount for a buyer
+    function getNFTDiscount(address buyer) internal view returns (uint) {
+        address seller = productsOf[buyer][0].seller;
+        NFTDiscount[] storage discounts = nftDiscounts[seller];
+
+        for (uint i = 0; i < discounts.length; i++) {
+            if (IERC721(discounts[i].nftContract).ownerOf(buyer) == buyer) {
+                return discounts[i].discountAmount;
+            }
+        }
+
+        return 0;
     }
 }
