@@ -1,95 +1,93 @@
-# Shop Smart Contract
+Shop Smart Contract
+This is a Solidity smart contract that facilitates a simple e-commerce platform with various features. Below are the key features of this smart contract and instructions on how to use them.
 
-## Introduction
+Features
+1. Product Management
+Create a Product: Sellers can create new products with details such as SKU, name, description, image URL, price, and stock.
 
-Welcome to the Shop smart contract, a decentralized e-commerce solution built on the Ethereum blockchain. This contract allows users to create, manage, and purchase products and track their orders.
+Update a Product: Sellers can update product details, including name, description, image URL, price, and stock.
 
-## Getting Started
+Delete a Product: Sellers can mark a product as deleted.
 
-### Prerequisites
+Get Product Information: Anyone can retrieve detailed information about a product.
 
-To interact with this smart contract, you'll need the following:
+2. Order Management
+Create an Order: Buyers can create orders by specifying the products they want to purchase, quantities, destination, and contact information.
 
-1. An Ethereum wallet (e.g., MetaMask) connected to the Ethereum mainnet or a testnet.
-2. Some Ether (ETH) in your wallet to pay for gas fees.
+View Orders: Buyers and sellers can view their respective orders.
 
-### Deploying the Contract
+Cancel an Order: Buyers can cancel their orders.
 
-To deploy the Shop smart contract:
+Deliver an Order: Sellers can mark an order as delivered.
 
-1. Copy the contract code from `DecentralizedShop.sol`.
-2. Access an Ethereum development environment like Remix or use the command-line Solidity compiler.
-3. Deploy the contract, specifying the initial fee required for product creation.
+Get Order Information: Anyone can retrieve detailed information about an order.
 
-### Interacting with the Contract
+3. Shopping Cart
+Add Products to Cart: Buyers can add products to their shopping cart.
 
-#### Creating a Product
+Remove Products from Cart: Buyers can remove products from their shopping cart.
 
-To create a product, use the `createProduct` function:
+Update Product Quantities in Cart: Buyers can update the quantities of products in their shopping cart.
 
-```solidity
-function createProduct(
-    string memory sku,
-    string memory name,
-    string memory description,
-    string memory imageURL,
-    uint price,
-    uint stock
-) public payable returns (bool)
-Provide product details, including SKU, name, description, image URL, price, and stock.
-Send Ether (ETH) as payment to cover the product creation fee.
-Updating a Product
-Owners of products can update their details using the updateProduct function:
+Checkout: Buyers can checkout and create an order from the items in their cart.
 
-solidity
- 
-function updateProduct(
-    uint id,
-    string memory name,
-    string memory description,
-    string memory imageURL,
-    uint price,
-    uint stock
-) public returns (bool)
-Specify the product ID and new details.
-Creating an Order
-To place an order, use the createOrder function:
+4. NFT Ownership Discounts
+Set NFT Ownership Discounts: Sellers can set discounts for buyers who own specific NFTs. The seller can specify the NFT contract address and the discount amount.
 
-solidity
- 
-function createOrder(
-    uint[] memory ids,
-    uint[] memory qtys,
-    string memory destination,
-    string memory phone
-) public payable returns (bool)
-Provide an array of product IDs (ids), quantities (qtys), destination, and phone number.
-Send enough Ether to cover the total cost of the order.
-Managing Orders
-Sellers can mark orders as delivered using the deliverOrder function.
-Buyers can cancel orders using the cancelOrder function.
-Shipping Orders
-To add a tracking number to an order and mark it as "shipped," use the shipOrder function:
+Claim NFT Discount: Buyers can claim their NFT ownership discount.
 
-solidity
- 
-function shipOrder(uint pid, uint id, string memory trackingNumber) public returns (bool)
-Specify the product ID (pid), order ID (id), and tracking number.
-Retrieving Data
-Use various get functions to retrieve product, order, and buyer data.
-Example Usage
-Here's an example of how to use the Shop smart contract:
+Apply NFT Discount at Checkout: The NFT discount is applied automatically at checkout if the buyer has claimed it.
 
-Deploy the contract on the Ethereum blockchain.
-Create products with createProduct and set their details.
-Users can place orders with createOrder by specifying product IDs and quantities.
-Sellers can mark orders as "shipped" using shipOrder.
-Buyers or sellers can manage orders with cancelOrder or deliverOrder.
-Retrieve product and order information using getProducts, getOrders, and related functions.
-License
-This smart contract is available under the MIT License. See the LICENSE file for details.
+How to Use
+Product Management
+Create a Product:
 
-Acknowledgments
-Special thanks to the Ethereum community and Solidity developers for their contributions to decentralized applications.
+Use the createProduct function, providing details such as SKU, name, description, image URL, price, and stock.
+Update a Product:
 
-gem-dealer1.888
+Use the updateProduct function, specifying the product ID and updated details.
+Delete a Product:
+
+Use the deleteProduct function, specifying the product ID.
+Get Product Information:
+
+Use the getProduct function, specifying the product ID, to retrieve product details.
+Order Management
+Create an Order:
+
+Use the createOrder function, providing an array of product IDs, quantities, destination, and contact information.
+View Orders:
+
+Use the getOrders function to view all orders.
+
+Use the getOrder function, specifying the product ID and order ID, to view details of a specific order.
+
+Cancel an Order:
+
+Use the cancelOrder function, specifying the product ID and order ID.
+Deliver an Order:
+
+Use the deliverOrder function, specifying the product ID and order ID.
+Shopping Cart
+Add Products to Cart:
+
+Use the addToCart function, specifying the product ID and quantity.
+Remove Products from Cart:
+
+Use the removeFromCart function, specifying the product ID.
+Update Product Quantities in Cart:
+
+Use the updateCartQuantity function, specifying the product ID and new quantity.
+Checkout:
+
+Use the checkout function to create an order from the items in your cart.
+NFT Ownership Discounts
+Set NFT Ownership Discounts (Sellers Only):
+
+Use the addNFTDiscount function to set NFT ownership discounts by specifying the NFT contract address and discount amount.
+Claim NFT Discount (Buyers Only):
+
+Use the claimNFTDiscount function to claim your NFT ownership discount.
+Apply NFT Discount at Checkout:
+
+The NFT discount will be applied automatical
